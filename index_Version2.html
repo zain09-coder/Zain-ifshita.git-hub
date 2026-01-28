@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>For Ifshita 💖</title>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(180deg, #ffe6f0, #fff);
+      font-family: 'Comic Sans MS', 'Comic Neue', cursive, sans-serif;
+      overflow: hidden;
+      color: #222;
+    }
+
+    /* HEARTS */
+    .heart {
+      position: absolute;
+      pointer-events: none;
+      color: pink;
+      animation: float 6s linear infinite;
+      will-change: transform, opacity;
+    }
+    @keyframes float {
+      0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* CENTER BOX */
+    .center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 2;
+      padding: 20px;
+      width: 100%;
+      max-width: 560px;
+      box-sizing: border-box;
+    }
+
+    /* BOUQUET */
+    .bouquet {
+      font-size: 80px;
+      transform-origin: center;
+      transition: transform 400ms ease;
+    }
+
+    /* BUTTONS */
+    .controls {
+      margin-top: 12px;
+    }
+
+    button {
+      padding: 10px 22px;
+      margin: 8px;
+      border: none;
+      border-radius: 20px;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    }
+    button:focus { outline: 3px solid rgba(255,77,109,0.25); }
+    .yes { background: #ff4d6d; color: white; }
+    .no  { background: #ddd; color: #333; }
+
+    /* GIFTS */
+    .gifts {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .gift {
+      background: white;
+      padding: 12px;
+      width: 140px;
+      height: 110px;
+      border-radius: 18px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.16);
+      cursor: pointer;
+      transition: transform 0.25s, box-shadow 0.25s;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      font-size:18px;
+      text-align:center;
+      user-select:none;
+    }
+    .gift:hover { transform: translateY(-6px) scale(1.03); box-shadow: 0 14px 30px rgba(0,0,0,0.16); }
+
+    /* LETTER */
+    .letter {
+      margin-top: 20px;
+      background: #fff0f6;
+      padding: 18px;
+      border-radius: 16px;
+      max-width: 380px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      line-height: 1.45;
+      color: #2a2a2a;
+    }
+
+    /* CATS */
+    .cat {
+      position: absolute;
+      bottom: 8px;
+      font-size: 40px;
+      animation: catMove 4s infinite alternate ease-in-out;
+      z-index: 1;
+    }
+    .cat.right { transform: scaleX(-1); }
+    @keyframes catMove {
+      from { transform: translateX(0); }
+      to { transform: translateX(40px); }
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 460px) {
+      .bouquet { font-size: 56px; }
+      .gift { width: 120px; height: 100px; font-size: 15px; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- CATS -->
+  <div class="cat" style="left:10px" aria-hidden="true">🐱</div>
+  <div class="cat right" style="right:10px" aria-hidden="true">🐈</div>
+
+  <!-- MAIN CONTENT -->
+  <main class="center" id="content" role="main">
+    <div class="bouquet" aria-hidden="true">🤍💐🤍</div>
+    <h2>Ifshita, will you be my Valentine? 💘</h2>
+
+    <div class="controls" role="group" aria-label="Answer choices">
+      <button class="yes" onclick="yes()">Yes 💖</button>
+      <button class="no" onclick="no()">No 🙃</button>
+    </div>
+  </main>
+
+  <script>
+    let noCount = 0;
+
+    /* HEART SPAWN - keeps a reasonable number of hearts */
+    const heartsLimit = 80;
+    const hearts = [];
+    const spawnInterval = setInterval(() => {
+      if (hearts.length > heartsLimit) {
+        const old = hearts.shift();
+        if (old && old.parentNode) old.parentNode.removeChild(old);
+      }
+
+      const h = document.createElement("div");
+      h.className = "heart";
+      h.innerHTML = Math.random() > 0.6 ? "💗" : "💞";
+      const left = Math.random() * 90 + 2;
+      h.style.left = left + "vw";
+      h.style.fontSize = (Math.random()*28 + 10) + "px";
+      h.style.animationDuration = (5 + Math.random()*3) + "s";
+      document.body.appendChild(h);
+      hearts.push(h);
+      setTimeout(() => {
+        if (h && h.parentNode) h.remove();
+        const idx = hearts.indexOf(h);
+        if (idx !== -1) hearts.splice(idx, 1);
+      }, 9000);
+    }, 300);
+
+    // Web Audio API synth sound for gift opening (works without external files)
+    let audioCtx = null;
+    function playOpenSound() {
+      // create AudioContext lazily (requires user gesture)
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      const now = audioCtx.currentTime;
+
+      // two oscillators for a pleasant pluck
+      const o1 = audioCtx.createOscillator();
+      const o2 = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      o1.type = 'sine';
+      o1.frequency.setValueAtTime(640, now);
+
+      o2.type = 'triangle';
+      o2.frequency.setValueAtTime(1280, now);
+
+      // envelope
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.exponentialRampToValueAtTime(0.28, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+
+      // small filter for warmth
+      const biquad = audioCtx.createBiquadFilter();
+      biquad.type = 'lowpass';
+      biquad.frequency.setValueAtTime(4000, now);
+
+      o1.connect(gain);
+      o2.connect(gain);
+      gain.connect(biquad);
+      biquad.connect(audioCtx.destination);
+
+      o1.start(now);
+      o2.start(now);
+      o1.stop(now + 0.45);
+      o2.stop(now + 0.45);
+    }
+
+    function no(){
+      noCount++;
+      if (noCount > 2) {
+        document.getElementById("content").innerHTML = `
+          <div class="bouquet">🤍💐🤍</div>
+          <h2>No option removed 😌</h2>
+          <div class="controls" role="group" aria-label="Answer choices">
+            <button class="yes" onclick="yes()">Yes 💖</button>
+            <button class="yes" onclick="yes()">Yes 💘</button>
+          </div>
+        `;
+      } else {
+        const btn = document.querySelector('.no');
+        if (btn) {
+          btn.animate([
+            { transform: 'translateY(0)' },
+            { transform: 'translateY(-6px)' },
+            { transform: 'translateY(0)' }
+          ], { duration: 300, easing: 'ease-out' });
+        }
+      }
+    }
+
+    function yes(){
+      document.getElementById("content").innerHTML = `
+        <div class="bouquet" id="mainBouquet">🤍💐🤍</div>
+        <h2>YAYYY IFSHITA 😭💖</h2>
+        <p style="margin:6px 0 0 0">Open your gifts 💌</p>
+
+        <div class="gifts" role="list" aria-label="Gifts">
+          <div class="gift" role="listitem" tabindex="0" onclick="gift1()" onkeypress="if(event.key==='Enter') gift1()">🎁<div style="margin-top:6px;font-size:13px">Open Letter</div></div>
+          <div class="gift" role="listitem" tabindex="0" onclick="gift2()" onkeypress="if(event.key==='Enter') gift2()">🎀<div style="margin-top:6px;font-size:13px">My Promise</div></div>
+          <div class="gift" role="listitem" tabindex="0" onclick="gift3()" onkeypress="if(event.key==='Enter') gift3()">🌟<div style="margin-top:6px;font-size:13px">Surprise</div></div>
+        </div>
+
+        <div id="letter" class="letter" aria-live="polite"></div>
+      `;
+
+      const b = document.getElementById('mainBouquet');
+      if (b) {
+        b.animate([
+          { transform: 'scale(1)' },
+          { transform: 'scale(1.12)' },
+          { transform: 'scale(1)' }
+        ], { duration: 520, easing: 'ease-out' });
+      }
+    }
+
+    function gift1(){
+      // play sound (user click) then show letter
+      try { playOpenSound(); } catch(e) { /* silent fallback */ }
+      const letter = document.getElementById("letter");
+      if(!letter) return;
+      letter.innerHTML = `
+        <div>
+          <p style="margin:0 0 8px 0"><strong>Ifshita 🤍,</strong></p>
+          <p style="margin:0 0 8px 0">
+            I love you more than words, more than moments,
+            and more than I ever knew I could.
+            You make my world softer, brighter,
+            and endlessly beautiful.
+            You are my favorite feeling 💖
+          </p>
+          <p style="margin:10px 0 0 0; font-size:13px; color:#6b6b6b">— Always, with all my heart</p>
+        </div>
+      `;
+    }
+
+    function gift2(){
+      try { playOpenSound(); } catch(e) { /* silent fallback */ }
+      const letter = document.getElementById("letter");
+      if(!letter) return;
+      letter.innerHTML = `
+        <div>
+          <p style="margin:0 0 8px 0"><strong>Stay with me, Ifshita 🤍</strong></p>
+          <p style="margin:0 0 8px 0">
+            Let’s celebrate every Valentine,
+            every laugh, every silly moment,
+            and every forever together.
+            I choose you—again and again 💘
+          </p>
+          <p style="margin:10px 0 0 0; font-size:13px; color:#6b6b6b">— I choose you</p>
+        </div>
+      `;
+    }
+
+    function gift3(){
+      try { playOpenSound(); } catch(e) { /* silent fallback */ }
+      const letter = document.getElementById("letter");
+      if(!letter) return;
+      letter.innerHTML = `
+        <div>
+          <p style="margin:0 0 8px 0"><strong>Surprise ✨</strong></p>
+          <p style="margin:0 0 8px 0">
+            Every day with you is a little adventure.
+            Thank you for being you — kind, warm, funny,
+            and wonderfully you. More laughs, more hugs,
+            and more late-night talks to come.
+          </p>
+          <p style="margin:10px 0 0 0; font-size:13px; color:#6b6b6b">— Tomorrow & always</p>
+        </div>
+      `;
+    }
+
+    // Optional: stop hearts when page hidden to save resources
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        clearInterval(spawnInterval);
+      } else {
+        if (!window.location.hash.includes('reloaded')) {
+          window.location.hash = 'reloaded';
+          window.location.reload();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
